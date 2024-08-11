@@ -1,0 +1,8 @@
+.vscode/
+data/
+**/data/
+build/
+*.bag
+docs/
+*.ply
+
