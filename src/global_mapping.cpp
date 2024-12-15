@@ -17,11 +17,12 @@ struct Vertex {
 
 class PointCloudToPly {
 public:
-    PointCloudToPly(const std::string& points_topic, const std::string& pose_topic, const std::string& output_file, const float map_range_xy, const float map_range_z, const float voxel_size, bool write_color = true, std::string object_csv="") 
-        : output_file_(output_file), first_message_(true), total_vertices_(0), no_message_count_(0), map_range_xy_(map_range_xy), map_range_z_(map_range_z), voxel_size_(voxel_size), write_color_(write_color), object_csv_(object_csv) {
+    PointCloudToPly(const std::string& points_topic, const std::string& pose_topic, const std::string& output_file, const float map_range_x, const float map_range_y, const float map_range_z, const float voxel_size, bool write_color = true, std::string object_csv="") 
+        : output_file_(output_file), first_message_(true), total_vertices_(0), no_message_count_(0), map_range_x_(map_range_x), map_range_y_(map_range_y), map_range_z_(map_range_z), voxel_size_(voxel_size), write_color_(write_color), object_csv_(object_csv) {
         
         std::cout << "Output file: " << output_file_ << std::endl;
-        std::cout << "Map range xy: " << map_range_xy_ << std::endl;
+        std::cout << "Map range x: " << map_range_x_ << std::endl;
+        std::cout << "Map range y: " << map_range_y_ << std::endl;
         std::cout << "Map range z: " << map_range_z_ << std::endl;
         std::cout << "Voxel size: " << voxel_size_ << std::endl;
 
@@ -159,14 +160,15 @@ public:
             return false;
         }
 
-        static const float map_range_xy_half = map_range_xy_ / 2.f - voxel_size_;
+        static const float map_range_x_half = map_range_x_ / 2.f - voxel_size_;
+        static const float map_range_y_half = map_range_y_ / 2.f - voxel_size_;
         static const float map_range_z_half = map_range_z_ / 2.f - voxel_size_;
 
-        if (x < map_pose.pose.position.x - map_range_xy_half || x > map_pose.pose.position.x + map_range_xy_half) {
+        if (x < map_pose.pose.position.x - map_range_x_half || x > map_pose.pose.position.x + map_range_x_half) {
             return false;
         }
 
-        if (y < map_pose.pose.position.y - map_range_xy_half || y > map_pose.pose.position.y + map_range_xy_half) {
+        if (y < map_pose.pose.position.y - map_range_y_half || y > map_pose.pose.position.y + map_range_y_half) {
             return false;
         }
 
@@ -329,7 +331,8 @@ private:
     size_t total_vertices_;
     int no_message_count_ = 0;
 
-    float map_range_xy_;
+    float map_range_x_;
+    float map_range_y_;
     float map_range_z_;
     float voxel_size_;
 
@@ -346,20 +349,20 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "global_mapping");
 
-    if (argc < 7) {
-        ROS_ERROR("Usage: %s <points_topic> <pose_topic> <output_file> <map_range_xy> <map_range_z> <voxel_size> <write_color> <object_csv> if voxel_size<=0, all the points in one frame will be saved.", argv[0]);
+    if (argc < 8) {
+        ROS_ERROR("Usage: %s <points_topic> <pose_topic> <output_file> <map_range_x> <map_range_y> <map_range_z> <voxel_size> <write_color> <object_csv> if voxel_size<=0, all the points in one frame will be saved.", argv[0]);
         return 1;
     }
 
     std::string object_csv = "";
     bool if_write_color = true;
     int write_color = 1;
-    if (argc >= 8) {
-        write_color = std::stoi(argv[7]);
+    if (argc >= 9) {
+        write_color = std::stoi(argv[8]);
     }
 
-    if (argc >= 9) {
-        object_csv = argv[8];
+    if (argc >= 10) {
+        object_csv = argv[9];
     }
 
     if (write_color == 0) {
@@ -372,7 +375,7 @@ int main(int argc, char **argv)
     std::string command = "mkdir -p " + folder;
     system(command.c_str());
 
-    PointCloudToPly converter(argv[1], argv[2], argv[3], std::stof(argv[4]), std::stof(argv[5]), std::stof(argv[6]), if_write_color, object_csv);
+    PointCloudToPly converter(argv[1], argv[2], argv[3], std::stof(argv[4]), std::stof(argv[5]), std::stof(argv[6]), std::stof(argv[7]), if_write_color, object_csv);
 
     return 0;
 }
